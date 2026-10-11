@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>退館手続き｜水族館</title><style>
+    /* 配色を変更する場合は、ここを編集してください。 */
+    :root { --navy:#073650; --blue:#0877ad; --aqua:#5ad4df; --paper:#f3f9fc; --ink:#17394a; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif; line-height:1.8; }
+    a { color:inherit; }
+    a:focus-visible { outline:3px solid #f1ae35; outline-offset:5px; }
+    .skip { position:absolute; top:-100px; left:16px; padding:12px; background:white; z-index:10; }
+    .skip:focus { top:12px; }
+    .container { width:min(1080px,92%); margin-inline:auto; }
+    header { background:var(--navy); color:white; }
+    .header-inner { display:flex; justify-content:space-between; align-items:center; gap:24px; padding-block:20px; }
+    .brand { text-decoration:none; font-size:1.5rem; font-weight:700; letter-spacing:.15em; }
+    .brand small { display:block; font-size:.65rem; letter-spacing:.2em; font-weight:400; color:#a4d7e9; }
+    nav { display:flex; gap:24px; flex-wrap:wrap; }
+    nav a { font-size:.9rem; text-decoration:none; padding-block:4px; border-bottom:2px solid transparent; }
+    nav a:hover { border-color:var(--aqua); }
+    .hero { position:relative; overflow:hidden; isolation:isolate; padding:100px 0 110px; color:white; background:radial-gradient(ellipse at 80% 0%,#187c97 0%,transparent 60%),linear-gradient(145deg,#073650,#061c31); }
+    /* 写真を使う場合は .hero に background-image を指定できます。 */
+    .hero::before { content:""; position:absolute; z-index:-1; inset:0; opacity:.3; background:repeating-linear-gradient(115deg,transparent 0 100px,#65d4e81a 120px,transparent 150px); }
+    .hero::after { content:""; position:absolute; width:720px; height:230px; border-radius:50%; background:#ffffff0a; bottom:-190px; left:10%; transform:rotate(-12deg); }
+    .eyebrow { color:#a1e4ed; font-size:.8rem; letter-spacing:.22em; }
+    h1 { font-family:"Yu Mincho","Hiragino Mincho ProN",serif; font-size:clamp(2rem,5vw,3.8rem); line-height:1.5; letter-spacing:.08em; margin:20px 0; }
+    .hero p { max-width:600px; }
+    .actions { display:flex; gap:14px; flex-wrap:wrap; margin-top:30px; }
+    .button { display:inline-block; padding:12px 25px; border-radius:5px; background:var(--blue); color:white; font-weight:700; text-decoration:none; text-align:center; transition:background .2s; }
+    .button:hover { background:#055e89; }
+    .hero .button { color:var(--navy); background:white; }
+    .hero .button:hover { background:#dcf5fa; }
+    .hero .secondary { background:transparent; color:white; border:1px solid #95c4d4; }
+    .hero .secondary:hover { background:#ffffff18; }
+    section { padding-block:52px; scroll-margin-top:20px; }
+    h2 { margin:0 0 25px; font-size:1.65rem; letter-spacing:.06em; }
+    .section-label { margin:0; font-size:.75rem; color:var(--blue); letter-spacing:.2em; }
+    .notice { margin-top:30px; background:white; border-left:4px solid var(--blue); padding:24px 28px; box-shadow:0 5px 25px #07365008; }
+    .notice h2 { font-size:1.15rem; margin-bottom:8px; }
+    .notice p { margin:0; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
+    .card { display:block; border-radius:8px; overflow:hidden; background:white; text-decoration:none; border:1px solid #dceaf0; transition:transform .2s,box-shadow .2s; }
+    .card:hover { transform:translateY(-4px); box-shadow:0 8px 24px #07365015; }
+    .visual { height:145px; position:relative; overflow:hidden; display:grid; place-items:center; color:#ffffffbd; font-size:.75rem; letter-spacing:.25em; background:linear-gradient(150deg,#38aeb7,#07557d); }
+    .visual::before,.visual::after { content:""; position:absolute; width:200px; height:200px; border:1px solid #ffffff25; border-radius:50%; right:-40px; top:35px; }
+    .visual::after { width:270px; height:270px; top:10px; right:-70px; }
+    .jelly { background:linear-gradient(150deg,#797cba,#204d79); }
+    .tank { background:linear-gradient(150deg,#166b8e,#092f4a); }
+    .deep { background:linear-gradient(150deg,#244b70,#081c32); }
+    .touch { background:linear-gradient(150deg,#57bcb6,#157f97); }
+    .shop { background:linear-gradient(150deg,#70b6ce,#347b9d); }
+    .card-text { padding:20px; }
+    .number { font-size:.72rem; color:var(--blue); letter-spacing:.15em; }
+    h3 { font-size:1.15rem; margin:5px 0; }
+    .card p { font-size:.85rem; color:#526d7c; margin:8px 0 14px; }
+    .more { color:var(--blue); font-size:.82rem; font-weight:700; }
+    .guide { background:#e5f2f8; }
+    .guide-inner { display:grid; grid-template-columns:1fr auto; align-items:center; gap:30px; }
+    .guide p { margin-bottom:0; }
+    .exit { padding:28px; border:1px solid #c6dce7; border-radius:8px; background:white; }
+    .exit p { margin-bottom:24px; }
+    footer { background:var(--navy); color:#bcdae7; padding:28px 0; font-size:.75rem; text-align:center; }
+    footer p { margin:5px 0; }
+    @media(max-width:760px) {
+      .header-inner { align-items:flex-start; flex-direction:column; gap:14px; }
+      nav { gap:18px; }
+      .hero { padding:65px 0 75px; }
+      .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .guide-inner { grid-template-columns:1fr; }
+    }
+    @media(max-width:480px) {
+      .grid { grid-template-columns:1fr; }
+      .actions { flex-direction:column; align-items:stretch; }
+      section { padding-block:36px; }
+    }
+    @media(prefers-reduced-motion:reduce) {
+      html { scroll-behavior:auto; }
+      .card,.button { transition:none; }
+      .card:hover { transform:none; }
+    }
+  
+.panel { background:white; border:1px solid #dceaf0; border-radius:8px; padding:28px; margin-block:24px; }
+label { display:block; font-weight:700; margin:16px 0 6px; }
+input,select { width:100%; padding:12px; font:inherit; color:var(--ink); background:white; border:1px solid #97bacb; border-radius:5px; }
+input[readonly] { background:#eff5f8; }
+input:focus-visible,select:focus-visible,button:focus-visible { outline:3px solid #f1ae35; outline-offset:3px; }
+button { border:0; cursor:pointer; font:inherit; }
+button:disabled { opacity:.45; cursor:not-allowed; }
+fieldset { min-width:0; border:1px solid #dceaf0; padding:18px; margin-block:18px; border-radius:6px; }
+.fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.message { padding:20px; background:#fdf0ee; border-left:4px solid #a92f36; margin-top:24px; }
+.message.success { background:#e7f6ee; border-color:#218454; }
+.muted { color:#526d7c; font-size:.85rem; }
+[hidden] { display:none!important; }
+.hero { padding:45px 0 55px; }
+@media(max-width:760px) { .fields { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <a class="skip" href="#main">本文へ移動</a>
+  <header>
+    <div class="container header-inner">
+      <a class="brand" href="top.html">館内案内<small>AQUARIUM GUIDE</small></a>
+      <nav aria-label="メインメニュー">
+        <a href="top.html#floor-guide">フロアマップ</a>
+        <a href="top.html#exhibitions">展示紹介</a>
+        <a href="checkout.html">退館手続き</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <div class="hero">
+      <div class="container">
+        <div class="eyebrow">CHECK OUT</div>
+        <h1>退館手続き</h1>
+        <p>お帰りの前に、来館者登録をご確認ください。</p>
+      </div>
+    </div>
+    <section class="container">
+      <div id="configuration-message" class="message" hidden role="alert"></div>
+      <form id="checkout-form" class="panel" hidden>
+        <h2>対象者の確認</h2>
+        <label for="visitor-select">対象者を選択</label>
+        <select id="visitor-select" required></select>
+        <div class="fields"><div>
+          <label for="entry-number">入館番号</label>
+          <input id="entry-number" readonly></div>
+          <div>
+            <label for="permit-number">退館許可番号</label>
+            <input id="permit-number" readonly>
+          </div>
+        </div>
+        <p class="muted">全員がそれぞれ退館手続きをお済ませください。</p>
+        <button class="button" type="submit">退館する</button>
+        <div id="checkout-result" class="message" role="status" aria-live="polite" hidden></div>
+        <div class="actions">
+          <a
+            id="permit-link"
+            class="button"
+            href="permit.html"
+            hidden
+          >
+            退館許可の発行へ →
+          </a>
+        </div>
+      </form>
+      <a href="shop.html">← ショップへ戻る</a>
+      </section>
+    </main>
+    <footer>
+      <div class="container">
+        <p>AQUARIUM — 館内案内</p>
+        <p>本日のご来館、誠にありがとうございます。</p>
+      </div>
+    </footer>
+  <script src="session-config.js"></script>
+
+  <script>
+    const config = window.AQUARIUM_SESSION;
+
+    const configurationMessage =
+      document.getElementById("configuration-message");
+
+    const form = document.getElementById("checkout-form");
+    const selector = document.getElementById("visitor-select");
+    const result = document.getElementById("checkout-result");
+    const permitLink = document.getElementById("permit-link");
+
+    function validConfig(c) {
+      if (
+        !c ||
+        typeof c.sessionId !== "string" ||
+        !/^[A-Za-z0-9_-]{1,64}$/.test(c.sessionId) ||
+        !Array.isArray(c.visitors) ||
+        c.visitors.length < 1 ||
+        c.visitors.length > 4
+      ) {
+        return false;
+      }
+
+      const validVisitors = c.visitors.every(function (v) {
+        return (
+          v &&
+          typeof v.name === "string" &&
+          v.name.trim() !== "" &&
+          v.name.length <= 80 &&
+          ["entryId", "permitId"].every(function (key) {
+            return (
+              typeof v[key] === "string" &&
+              /^[A-Za-z0-9_-]{1,64}$/.test(v[key])
+            );
+          })
+        );
+      });
+
+      if (!validVisitors) return false;
+
+      return ["entryId", "permitId"].every(function (key) {
+        return new Set(
+          c.visitors.map(v => v[key].toUpperCase())
+        ).size === c.visitors.length;
+      });
+    }
+
+    if (!validConfig(config)) {
+      configurationMessage.hidden = false;
+      configurationMessage.textContent =
+        "来館者情報が未設定、または設定に不備があります。KPへお知らせください。";
+    } else {
+      const stateKey =
+        "aquarium:" + config.sessionId + ":registrations";
+
+      config.visitors.forEach(function (v) {
+        const option = document.createElement("option");
+        option.value = v.entryId;
+        option.textContent = v.entryId;
+        selector.append(option);
+      });
+
+      form.hidden = false;
+
+      function selectedVisitor() {
+        return config.visitors.find(function (v) {
+          return v.entryId === selector.value;
+        });
+      }
+
+      function readStatus(visitor) {
+        const raw = localStorage.getItem(stateKey);
+
+        if (!raw) return "specimen";
+
+        const states = JSON.parse(raw);
+
+        if (
+          !states ||
+          typeof states !== "object" ||
+          Array.isArray(states)
+        ) {
+          throw new Error("登録情報の形式が不正です。");
+        }
+
+        return (
+          Object.hasOwn(states, visitor.entryId) &&
+          states[visitor.entryId] === "visitor"
+        ) ? "visitor" : "specimen";
+      }
+
+      function updateFields() {
+        const v = selectedVisitor();
+
+        document.getElementById("entry-number").value = v.entryId;
+        document.getElementById("permit-number").value = "未発行";
+
+        result.hidden = true;
+        permitLink.hidden = true;
+      }
+
+      selector.addEventListener("change", updateFields);
+      updateFields();
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const visitor = selectedVisitor();
+
+        result.hidden = false;
+        result.classList.remove("success");
+        permitLink.hidden = true;
+
+        let status;
+
+        try {
+          status = readStatus(visitor);
+        } catch {
+          result.textContent =
+            "登録情報を読み込めません。保存設定や進行情報をKPと確認してください。";
+          return;
+        }
+
+        if (status === "visitor") {
+          result.classList.add("success");
+          result.textContent =
+            "入館番号：" + visitor.entryId +
+            " の来館者登録を確認しました。退館許可の発行へお進みください。";
+
+          permitLink.href =
+            "permit.html?entry=" +
+            encodeURIComponent(visitor.entryId);
+
+          permitLink.hidden = false;
+        } else {
+          result.textContent =
+            "退館できません。" +
+            "入館番号：" + visitor.entryId +
+            " ／ 登録区分：飼育個体。" +
+            "登録変更には職員認証が必要です。";
+        }
+      });
+
+      const entry =
+        new URLSearchParams(location.search).get("entry");
+
+      if (config.visitors.some(v => v.entryId === entry)) {
+        selector.value = entry;
+        updateFields();
+      }
+    }
+  </script>
+  
+</body>
+</html>

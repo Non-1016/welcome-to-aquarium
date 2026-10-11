@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>登録区分の変更｜館内ガイド</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #fbfdff;
+      color: #07164d;
+      font-family: "Yu Gothic", sans-serif;
+      line-height: 1.7;
+    }
+
+    .page {
+      width: min(900px, 92%);
+      margin: 24px auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    a { color: inherit; }
+
+    .brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .breadcrumb {
+      margin: 24px 0;
+      color: #009ce5;
+    }
+
+    h1 { font-size: clamp(1.8rem, 5vw, 2.7rem); }
+
+    .panel {
+      margin-top: 24px;
+      border: 1px solid #a3d9ff;
+      border-radius: 10px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 14px 22px;
+      background: #def2ff;
+      font-size: 1.35rem;
+    }
+
+    .content { padding: 20px 24px; }
+
+    .table-wrapper {
+      overflow-x: auto;
+      padding: 12px 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 13px 10px;
+      border-bottom: 1px solid #d4e7f5;
+    }
+
+    th {
+      background: #eff5f8;
+      white-space: nowrap;
+    }
+
+    td { overflow-wrap: anywhere; }
+    .visitor { color: #218454; }
+    .specimen { color: #a92f36; }
+
+    label {
+      display: block;
+      margin: 18px 0 6px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #97bacb;
+      border-radius: 6px;
+      background: white;
+      color: #17394a;
+      font: inherit;
+    }
+
+    input[readonly] { background: #eff5f8; }
+
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      margin-top: 20px;
+      border: 0;
+      border-radius: 7px;
+      background: #07164d;
+      color: white;
+      font: inherit;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 20px;
+      padding: 16px;
+      background: #fff0ee;
+      border-left: 4px solid #a92f36;
+    }
+
+    .message.success {
+      background: #e7f6ee;
+      border-color: #218454;
+    }
+
+    .notice {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #e9eff5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    footer {
+      padding: 24px 0;
+      text-align: center;
+      font-size: .85rem;
+    }
+
+    [hidden] { display: none !important; }
+
+    :focus-visible {
+      outline: 3px solid #edaf30;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 550px) {
+      .content { padding: 16px; }
+      .table-wrapper { padding: 8px; }
+
+      th, td {
+        padding: 10px 7px;
+        font-size: .85rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <a class="brand" href="../top.html">🐟 館内ガイド</a>
+      <a href="../floormap.html">フロアマップ ›</a>
+    </header>
+
+    <nav class="breadcrumb" aria-label="現在位置">
+      <a href="staff-auth.html">職員認証</a>
+      　›　登録区分の変更
+    </nav>
+
+    <main>
+      <h1>登録区分の変更</h1>
+
+      <p
+        id="access-error"
+        class="message"
+        role="alert"
+        hidden
+      ></p>
+
+      <a
+        id="auth-link"
+        class="button"
+        href="staff-auth.html"
+        hidden
+      >
+        職員認証へ
+      </a>
+
+      <noscript>
+        <p class="message">
+          登録変更にはJavaScriptを有効にしてください。
+        </p>
+      </noscript>
+
+      <div id="management" hidden>
+        <section class="panel">
+          <h2>登録一覧</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">入館番号</th>
+                  <th scope="col">種族</th>
+                  <th scope="col">登録区分</th>
+                </tr>
+              </thead>
+              <tbody id="roster"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>登録区分の変更</h2>
+
+          <form id="registration-form" class="content">
+            <label for="entry-number">入館番号</label>
+            <select id="entry-number" required></select>
+
+            <label for="pc-name">対象者の氏名</label>
+            <input
+              id="pc-name"
+              type="text"
+              placeholder="対象者の氏名を入力"
+              maxlength="80"
+              autocomplete="off"
+              spellcheck="false"
+              required
+            >
+
+            <label for="current-status">現在の登録区分</label>
+            <input id="current-status" readonly>
+
+            <label for="new-status">変更後の登録区分</label>
+            <select id="new-status" required>
+              <option value="visitor">来館者</option>
+              <option value="specimen">飼育個体</option>
+            </select>
+
+            <button
+              id="save-button"
+              class="button"
+              type="submit"
+            >
+              氏名を照合して登録区分を変更する
+            </button>
+
+            <p
+              id="save-result"
+              class="message"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></p>
+          </form>
+        </section>
+
+        <aside class="notice">
+          <strong>職員への連絡事項</strong><br>
+          入館番号と対象者の氏名が一致した場合のみ、
+          登録を変更できます。<br>
+          対象者が自分の名前を思い出せない場合は、
+          変更を中止してください。
+        </aside>
+
+        <div class="actions">
+          <a href="records.html">登録確認へ</a>
+          <a href="staff-auth.html">職員ページへ戻る</a>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      職員の皆様は、ご自身の登録区分も定期的にご確認ください。
+    </footer>
+  </div>
+
+  <script src="../session-config.js"></script>
+
+  <script>
+    const config = window.AQUARIUM_SESSION;
+
+    const management = document.getElementById("management");
+    const error = document.getElementById("access-error");
+    const authLink = document.getElementById("auth-link");
+    const selector = document.getElementById("entry-number");
+    const nameInput = document.getElementById("pc-name");
+    const newStatus = document.getElementById("new-status");
+    const result = document.getElementById("save-result");
+    const saveButton = document.getElementById("save-button");
+
+    function fail(message, authentication = false) {
+      management.hidden = true;
+      error.hidden = false;
+      error.textContent = message;
+      authLink.hidden = !authentication;
+    }
+
+    function validConfig(c) {
+      if (
+        !c ||
+        typeof c.sessionId !== "string" ||
+        !/^[A-Za-z0-9_-]{1,64}$/.test(c.sessionId) ||
+        !Array.isArray(c.visitors) ||
+        c.visitors.length < 1 ||
+        c.visitors.length > 4
+      ) {
+        return false;
+      }
+
+      const validVisitors = c.visitors.every(function (pc) {
+        return (
+          pc &&
+          typeof pc.name === "string" &&
+          pc.name.trim() !== "" &&
+          pc.name.length <= 80 &&
+          ["entryId", "permitId"].every(function (key) {
+            return (
+              typeof pc[key] === "string" &&
+              /^[A-Za-z0-9_-]{1,64}$/.test(pc[key])
+            );
+          })
+        );
+      });
+
+      if (!validVisitors) return false;
+
+      return ["entryId", "permitId"].every(function (key) {
+        return new Set(
+          c.visitors.map(pc => pc[key].toUpperCase())
+        ).size === c.visitors.length;
+      });
+    }
+
+    function initialize() {
+      if (!validConfig(config)) {
+        fail("対象者の設定を読み込めません。KPへお知らせください。");
+        return;
+      }
+
+      const prefix = "aquarium:" + config.sessionId;
+
+      const authKey = prefix + ":staff-auth";
+      const stateKey = prefix + ":registrations";
+      const permitKey = prefix + ":permits";
+      const exitKey = prefix + ":exits";
+
+      function authorized() {
+        return sessionStorage.getItem(authKey) === "true";
+      }
+
+      function readRecord(key) {
+        const raw = localStorage.getItem(key);
+        const record = raw === null ? {} : JSON.parse(raw);
+
+        if (
+          !record ||
+          typeof record !== "object" ||
+          Array.isArray(record)
+        ) {
+          throw new Error("保存情報の形式が不正です。");
+        }
+
+        return record;
+      }
+
+      function selectedPC() {
+        return config.visitors.find(function (pc) {
+          return pc.entryId === selector.value;
+        });
+      }
+
+      function statusOf(states, pc) {
+        return (
+          Object.hasOwn(states, pc.entryId) &&
+          states[pc.entryId] === "visitor"
+        ) ? "visitor" : "specimen";
+      }
+
+      function showMessage(text, success = false) {
+        result.hidden = false;
+        result.classList.toggle("success", success);
+        result.textContent = text;
+      }
+
+      function render() {
+        const states = readRecord(stateKey);
+        const roster = document.getElementById("roster");
+
+        roster.replaceChildren();
+
+        config.visitors.forEach(function (pc) {
+          const row = document.createElement("tr");
+
+          const idCell = document.createElement("td");
+          idCell.textContent = pc.entryId;
+
+          const speciesCell = document.createElement("td");
+          speciesCell.textContent = pc.species || "人間";
+
+          const statusCell = document.createElement("td");
+          const status = statusOf(states, pc);
+
+          statusCell.textContent =
+            status === "visitor" ? "来館者" : "飼育個体";
+          statusCell.className = status;
+
+          row.append(idCell, speciesCell, statusCell);
+          roster.append(row);
+        });
+
+        document.getElementById("current-status").value =
+          statusOf(states, selectedPC()) === "visitor"
+            ? "来館者"
+            : "飼育個体";
+      }
+
+      // 選択肢にも氏名は表示しません。
+      config.visitors.forEach(function (pc) {
+        const option = document.createElement("option");
+        option.value = pc.entryId;
+        option.textContent = pc.entryId;
+        selector.append(option);
+      });
+
+      const entry =
+        new URLSearchParams(location.search).get("entry");
+
+      if (config.visitors.some(pc => pc.entryId === entry)) {
+        selector.value = entry;
+      }
+
+      function refresh() {
+        try {
+          if (!authorized()) {
+            fail("職員認証が必要です。", true);
+            return;
+          }
+
+          render();
+
+          management.hidden = false;
+          error.hidden = true;
+          authLink.hidden = true;
+          saveButton.disabled = false;
+        } catch {
+          fail(
+            "登録情報を読み込めません。保存設定や進行情報をKPと確認してください。"
+          );
+        }
+      }
+
+      selector.addEventListener("change", function () {
+        nameInput.value = "";
+        result.hidden = true;
+        refresh();
+      });
+
+      nameInput.addEventListener("input", function () {
+        result.hidden = true;
+      });
+
+      newStatus.addEventListener("change", function () {
+        result.hidden = true;
+      });
+
+      document.getElementById("registration-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          try {
+            if (!authorized()) {
+              fail("職員認証が必要です。", true);
+              return;
+            }
+
+            const pc = selectedPC();
+
+            // 選択した番号のPC名と照合します。
+            // 前後の空白だけ除き、それ以外は完全一致です。
+            if (
+                nameInput.value.replace(/\s+/g, "") !==
+                pc.name.replace(/\s+/g, "")
+                ) {
+              return;
+            }
+
+            if (
+              !["visitor", "specimen"].includes(newStatus.value)
+            ) {
+              showMessage("× 登録区分を選択してください。");
+              return;
+            }
+
+            const states = readRecord(stateKey);
+
+            if (statusOf(states, pc) === newStatus.value) {
+              render();
+
+              showMessage(
+                "○ 入館番号と氏名が一致しました。" +
+                "選択した登録区分で登録済みです。",
+                true
+              );
+              return;
+            }
+
+            const permits = readRecord(permitKey);
+            const exits = readRecord(exitKey);
+
+            states[pc.entryId] = newStatus.value;
+
+            // 区分変更後は、対象者の古い許可と退館記録を無効化。
+            delete permits[pc.entryId];
+            delete exits[pc.entryId];
+
+            const updates = [
+              [permitKey, permits],
+              [exitKey, exits],
+              [stateKey, states]
+            ];
+
+            const backups = updates.map(function ([key]) {
+              return [key, localStorage.getItem(key)];
+            });
+
+            try {
+              updates.forEach(function ([key, value]) {
+                localStorage.setItem(key, JSON.stringify(value));
+              });
+            } catch (storageError) {
+              // 保存失敗時は、変更前の状態へ戻します。
+              backups.forEach(function ([key, value]) {
+                try {
+                  if (value === null) {
+                    localStorage.removeItem(key);
+                  } else {
+                    localStorage.setItem(key, value);
+                  }
+                } catch {}
+              });
+
+              throw storageError;
+            }
+
+            render();
+
+            const label = newStatus.value === "visitor"
+              ? "来館者"
+              : "飼育個体";
+
+            showMessage(
+              "○ 入館番号と氏名が一致しました。" +
+              pc.entryId +
+              " の登録区分を「" + label + "」へ変更しました。",
+              true
+            );
+          } catch {
+            saveButton.disabled = true;
+
+            showMessage(
+              "× 変更処理を完了できません。" +
+              "保存設定や進行情報をKPと確認してください。"
+            );
+          }
+        });
+
+      window.addEventListener("focus", refresh);
+
+      window.addEventListener("storage", function (event) {
+        if (event.key === stateKey || event.key === null) {
+          refresh();
+        }
+      });
+
+      refresh();
+    }
+
+    initialize();
+  </script>
+</body>
+</html>

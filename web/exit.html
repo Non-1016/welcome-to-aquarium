@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>出口端末｜水族館</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #edf3f7;
+      color: #17394a;
+      font-family: "Yu Gothic", sans-serif;
+      line-height: 1.8;
+    }
+
+    header {
+      padding: 24px;
+      background: #073650;
+      color: white;
+    }
+
+    .header-inner {
+      max-width: 760px;
+      margin: auto;
+    }
+
+    .brand {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: .1em;
+    }
+
+    main {
+      width: min(760px, 92%);
+      margin: 40px auto 60px;
+    }
+
+    .eyebrow {
+      color: #0877ad;
+      font-size: .8rem;
+      letter-spacing: .18em;
+    }
+
+    h1 { margin-top: 0; }
+
+    .panel {
+      padding: 28px;
+      margin-top: 24px;
+      background: white;
+      border: 1px solid #d6e3eb;
+      border-radius: 8px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 6px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #97bacb;
+      border-radius: 5px;
+      background: white;
+      color: #17394a;
+      font: inherit;
+    }
+
+    input[readonly] { background: #eff5f8; }
+
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      margin-top: 20px;
+      border: 0;
+      border-radius: 5px;
+      background: #0877ad;
+      color: white;
+      font: inherit;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .button:hover { background: #055e89; }
+
+    .button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    :focus-visible {
+      outline: 3px solid #f1ae35;
+      outline-offset: 3px;
+    }
+
+    .notice {
+      padding: 18px;
+      margin-top: 24px;
+      background: #fff6df;
+      border-left: 4px solid #d79728;
+    }
+
+    .message {
+      padding: 16px;
+      margin-top: 20px;
+      background: #fdf0ee;
+      border-left: 4px solid #a92f36;
+    }
+
+    .success {
+      background: #e7f6ee;
+      border-color: #218454;
+    }
+
+    .ending {
+      padding: 35px 24px;
+      margin-top: 28px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #073650, #061c31);
+      color: white;
+      text-align: center;
+    }
+
+    .ending h2 {
+      font-family: "Yu Mincho", serif;
+      font-size: 1.8rem;
+      letter-spacing: .1em;
+    }
+
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #dce7ee;
+    }
+
+    th {
+      background: #eff5f8;
+      white-space: nowrap;
+    }
+
+    td { overflow-wrap: anywhere; }
+
+    .completed { color: #218454; }
+    .waiting { color: #8b5f24; }
+
+    .back {
+      display: inline-block;
+      margin-top: 24px;
+      color: #0877ad;
+    }
+
+    footer {
+      padding: 24px;
+      background: #073650;
+      color: #bcdae7;
+      text-align: center;
+      font-size: .75rem;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 480px) {
+      .panel { padding: 20px; }
+      th, td { padding: 8px; font-size: .85rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <p class="brand">水族館 出口端末</p>
+    </div>
+  </header>
+
+  <main>
+    <p class="eyebrow">EXIT TERMINAL</p>
+    <h1>退館確認</h1>
+
+    <p>
+      退館許可証に記載された番号を入力してください。<br>
+      ご同行の皆さまも、それぞれ確認を行ってください。
+    </p>
+
+    <div class="notice">
+      <strong>出口をご利用の皆さまへ</strong><br>
+      出口の向こうから名前を呼ばれても、応じないでください。<br>
+      扉が開いたら、振り返らずにお進みください。
+    </div>
+
+    <noscript>
+      <p class="message">
+        退館確認にはJavaScriptを有効にしてください。
+      </p>
+    </noscript>
+
+    <div id="config-error" class="message" role="alert" hidden></div>
+
+    <div id="exit-area" hidden>
+      <form id="exit-form" class="panel">
+        <h2>退館許可証の照合</h2>
+
+        <label for="target">対象者を選択</label>
+        <select id="target" required></select>
+
+        <label for="entry-number">入館番号</label>
+        <input id="entry-number" readonly>
+
+        <label for="pc-name">対象者の氏名</label>
+        <input id="pc-name" readonly>
+
+        <label for="permit-number">退館許可番号</label>
+        <input
+          id="permit-number"
+          type="text"
+          placeholder="許可証に記載された番号"
+          maxlength="64"
+          autocomplete="off"
+          spellcheck="false"
+          required
+        >
+
+        <button id="exit-button" class="button" type="submit">
+          許可番号を照合して退館する
+        </button>
+
+        <div
+          id="exit-result"
+          class="message"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+      </form>
+
+      <section class="panel" hidden>
+        <h2>退館状況</h2>
+        <p id="progress" role="status" aria-live="polite"></p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">入館番号</th>
+                <th scope="col">対象者の氏名</th>
+                <th scope="col">退館状況</th>
+              </tr>
+            </thead>
+            <tbody id="roster"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="ending" class="ending" hidden>
+        <p>CHECK OUT COMPLETE</p>
+        <h2>全員の退館が完了しました</h2>
+        <p>
+          本日のご来館、誠にありがとうございました。<br>
+          どうぞ、お気をつけてお帰りください。
+        </p>
+      </section>
+
+      <a id="back-link" class="back" href="permit.html">
+        ← 退館許可証を確認する
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    AQUARIUM — 出口端末
+  </footer>
+
+  <script src="session-config.js"></script>
+
+  <script>
+    const config = window.AQUARIUM_SESSION;
+
+    const area = document.getElementById("exit-area");
+    const configError = document.getElementById("config-error");
+    const form = document.getElementById("exit-form");
+    const selector = document.getElementById("target");
+    const numberInput = document.getElementById("permit-number");
+    const exitButton = document.getElementById("exit-button");
+    const result = document.getElementById("exit-result");
+    const roster = document.getElementById("roster");
+    const progress = document.getElementById("progress");
+    const ending = document.getElementById("ending");
+    const backLink = document.getElementById("back-link");
+
+    function validConfig(settings) {
+      if (
+        !settings ||
+        typeof settings.sessionId !== "string" ||
+        !/^[A-Za-z0-9_-]{1,64}$/.test(settings.sessionId) ||
+        !Array.isArray(settings.visitors) ||
+        settings.visitors.length < 1 ||
+        settings.visitors.length > 4
+      ) {
+        return false;
+      }
+
+      const validVisitors = settings.visitors.every(function (pc) {
+        return (
+          pc &&
+          typeof pc.name === "string" &&
+          pc.name.trim() !== "" &&
+          pc.name.length <= 80 &&
+          ["entryId", "permitId"].every(function (key) {
+            return (
+              typeof pc[key] === "string" &&
+              /^[A-Za-z0-9_-]{1,64}$/.test(pc[key])
+            );
+          })
+        );
+      });
+
+      if (!validVisitors) return false;
+
+      return ["entryId", "permitId"].every(function (key) {
+        return new Set(
+          settings.visitors.map(pc => pc[key].toUpperCase())
+        ).size === settings.visitors.length;
+      });
+    }
+
+    function normalizeNumber(value) {
+      return value
+        .normalize("NFKC")
+        .trim()
+        .toUpperCase()
+        .replace(/\s/g, "")
+        .replace(/[‐‑‒–—−ー]/g, "-");
+    }
+
+    function initialize() {
+      if (!validConfig(config)) {
+        configError.hidden = false;
+        configError.textContent =
+          "対象者の設定を読み込めません。KPへお知らせください。";
+        return;
+      }
+
+      const prefix = "aquarium:" + config.sessionId;
+
+      const stateKey = prefix + ":registrations";
+      const permitKey = prefix + ":permits";
+      const exitKey = prefix + ":exits";
+
+      function readRecord(key) {
+        const raw = localStorage.getItem(key);
+
+        if (raw === null) return {};
+
+        const record = JSON.parse(raw);
+
+        if (
+          !record ||
+          typeof record !== "object" ||
+          Array.isArray(record)
+        ) {
+          throw new Error("保存情報の形式が不正です。");
+        }
+
+        return record;
+      }
+
+      function selectedVisitor() {
+        return config.visitors.find(function (pc) {
+          return pc.entryId === selector.value;
+        });
+      }
+
+      function hasExited(exits, pc) {
+        return (
+          Object.hasOwn(exits, pc.entryId) &&
+          exits[pc.entryId] === true
+        );
+      }
+
+      function showMessage(text, success = false) {
+        result.hidden = false;
+        result.classList.toggle("success", success);
+        result.textContent = text;
+      }
+
+      function render() {
+        const pc = selectedVisitor();
+        const exits = readRecord(exitKey);
+        const completed = hasExited(exits, pc);
+
+        document.getElementById("entry-number").value = pc.entryId;
+        document.getElementById("pc-name").value = pc.name;
+
+        numberInput.disabled = completed;
+        exitButton.disabled = completed;
+
+        exitButton.textContent = completed
+          ? "退館済みです"
+          : "許可番号を照合して退館する";
+
+        backLink.href =
+          "permit.html?entry=" + encodeURIComponent(pc.entryId);
+
+        roster.replaceChildren();
+
+        let count = 0;
+
+        config.visitors.forEach(function (visitor) {
+          const done = hasExited(exits, visitor);
+
+          if (done) count++;
+
+          const row = document.createElement("tr");
+
+          const numberCell = document.createElement("td");
+          numberCell.textContent = visitor.entryId;
+
+          const nameCell = document.createElement("td");
+          nameCell.textContent = visitor.name;
+
+          const statusCell = document.createElement("td");
+          statusCell.textContent = done ? "退館完了" : "退館待ち";
+          statusCell.className = done ? "completed" : "waiting";
+
+          row.append(numberCell, nameCell, statusCell);
+          roster.append(row);
+        });
+
+        progress.textContent =
+          "退館完了：" + count + " / " +
+          config.visitors.length + " 人（この端末の記録）";
+
+        ending.hidden = count !== config.visitors.length;
+
+        if (completed) {
+          showMessage(pc.name + " 様の退館は完了しています。", true);
+        }
+      }
+
+      function showStorageError() {
+        exitButton.disabled = true;
+        ending.hidden = true;
+        showMessage(
+          "進行情報を読み込めません。保存設定や進行情報をKPと確認してください。"
+        );
+      }
+
+      config.visitors.forEach(function (pc) {
+        const option = document.createElement("option");
+
+        option.value = pc.entryId;
+        option.textContent = pc.entryId + " ｜ " + pc.name;
+
+        selector.append(option);
+      });
+
+      const entry = new URLSearchParams(location.search).get("entry");
+
+      if (config.visitors.some(pc => pc.entryId === entry)) {
+        selector.value = entry;
+      }
+
+      area.hidden = false;
+
+      try {
+        render();
+      } catch {
+        showStorageError();
+      }
+
+      selector.addEventListener("change", function () {
+        numberInput.value = "";
+        result.hidden = true;
+
+        try {
+          render();
+        } catch {
+          showStorageError();
+        }
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        try {
+          const pc = selectedVisitor();
+          const states = readRecord(stateKey);
+          const permits = readRecord(permitKey);
+          const exits = readRecord(exitKey);
+
+          if (hasExited(exits, pc)) {
+            render();
+            return;
+          }
+
+          if (
+            !Object.hasOwn(states, pc.entryId) ||
+            states[pc.entryId] !== "visitor"
+          ) {
+            showMessage(
+              "退館できません。登録区分が「来館者」ではありません。"
+            );
+            return;
+          }
+
+          if (
+            !Object.hasOwn(permits, pc.entryId) ||
+            permits[pc.entryId] !== pc.permitId
+          ) {
+            showMessage(
+              "退館許可証が発行されていません。許可証の発行を先に行ってください。"
+            );
+            return;
+          }
+
+          if (
+            normalizeNumber(numberInput.value) !==
+            normalizeNumber(pc.permitId)
+          ) {
+            showMessage(
+              "許可番号が一致しません。対象者と許可証をご確認ください。"
+            );
+            return;
+          }
+
+          // 他のPCの退館記録を残して保存します。
+          exits[pc.entryId] = true;
+
+          localStorage.setItem(exitKey, JSON.stringify(exits));
+
+          numberInput.value = "";
+
+          render();
+
+          showMessage(
+            "退館許可を確認しました。" +
+            pc.name +
+            " 様、出口が開きます。振り返らずにお進みください。",
+            true
+          );
+        } catch {
+          exitButton.disabled = true;
+          showMessage(
+            "退館処理を完了できませんでした。保存設定や進行情報をKPと確認してください。"
+          );
+        }
+      });
+    }
+
+    initialize();
+  </script>
+</body>
+</html>

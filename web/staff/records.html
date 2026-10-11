@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>登録確認｜館内ガイド</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #fbfdff;
+      color: #07164d;
+      font-family: "Yu Gothic", sans-serif;
+      line-height: 1.7;
+    }
+
+    .page {
+      width: min(960px, 92%);
+      margin: 24px auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    a { color: inherit; }
+
+    .brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .outline {
+      display: inline-block;
+      padding: 8px 18px;
+      border: 2px solid #152097;
+      border-radius: 24px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .breadcrumb {
+      margin: 24px 0;
+      color: #009ce5;
+    }
+
+    h1 { font-size: clamp(1.8rem, 5vw, 2.7rem); }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .count-card {
+      border: 1px solid #a3d9ff;
+      border-radius: 10px;
+      padding: 20px;
+      background: #e4f4ff;
+      text-align: center;
+    }
+
+    .count-card strong {
+      display: block;
+      font-size: 2.2rem;
+    }
+
+    .panel {
+      margin-top: 24px;
+      border: 1px solid #a3d9ff;
+      border-radius: 10px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 14px 22px;
+      font-size: 1.35rem;
+      background: #def2ff;
+    }
+
+    .table-wrapper {
+      padding: 12px 20px;
+      overflow-x: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 13px 10px;
+      border-bottom: 1px solid #d4e7f5;
+    }
+
+    th { white-space: nowrap; }
+    td { overflow-wrap: anywhere; }
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .new-pc { background: #fff8ea; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 12px;
+      font-size: .8rem;
+      background: #e7f6ee;
+      color: #216746;
+      white-space: nowrap;
+    }
+
+    .badge.specimen {
+      background: #fff0ee;
+      color: #992d39;
+    }
+
+    .empty {
+      padding: 0 22px 18px;
+      color: #52607c;
+    }
+
+    .notice {
+      margin: 24px 0;
+      padding: 20px;
+      background: #e9eff5;
+      border-radius: 10px;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 7px;
+      background: #07164d;
+      color: white;
+      font: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .message {
+      margin-top: 20px;
+      padding: 18px;
+      background: #fff0ee;
+      border-left: 4px solid #992d39;
+    }
+
+    .muted {
+      color: #52607c;
+      font-size: .85rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px 0;
+      font-size: .85rem;
+    }
+
+    [hidden] { display: none !important; }
+
+    :focus-visible {
+      outline: 3px solid #edaf30;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 550px) {
+      .summary { gap: 10px; }
+      .count-card { padding: 12px; }
+      .table-wrapper { padding: 8px; }
+
+      th, td {
+        padding: 10px 7px;
+        font-size: .85rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <a class="brand" href="../top.html">🐟 館内ガイド</a>
+      <a class="outline" href="../floormap.html">
+        フロアマップ ›
+      </a>
+    </header>
+
+    <nav class="breadcrumb" aria-label="現在位置">
+      <a href="staff-auth.html">職員認証</a>　›　登録確認
+    </nav>
+
+    <main>
+      <h1>来館者・飼育個体の登録確認</h1>
+      <p>現在の登録区分に基づき、対象者と飼育個体を表示しています。</p>
+
+      <noscript>
+        <p class="message">
+          登録確認にはJavaScriptを有効にしてください。
+        </p>
+      </noscript>
+
+      <p id="error" class="message" role="alert" hidden></p>
+
+      <a
+        id="auth-link"
+        class="button"
+        href="staff-auth.html"
+        hidden
+      >
+        職員認証へ
+      </a>
+
+      <div id="records" hidden>
+        <div class="summary" role="status" aria-live="polite">
+          <div class="count-card">
+            来館者
+            <strong id="visitor-count">0名</strong>
+          </div>
+
+          <div class="count-card">
+            飼育個体
+            <strong id="specimen-count">0体</strong>
+          </div>
+        </div>
+
+        <section class="panel">
+          <h2>来館者一覧</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">入館番号</th>
+                  <th scope="col">対象者の氏名</th>
+                  <th scope="col">登録区分</th>
+                </tr>
+              </thead>
+              <tbody id="visitor-list"></tbody>
+            </table>
+          </div>
+
+          <p id="visitor-empty" class="empty" hidden>
+            現在、来館者として登録された対象者はいません。
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2>飼育個体一覧</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">管理番号／入館番号</th>
+                  <th scope="col">種別</th>
+                  <th scope="col">登録区分</th>
+                </tr>
+              </thead>
+              <tbody id="specimen-list"></tbody>
+            </table>
+          </div>
+
+          <p id="specimen-empty" class="empty" hidden>
+            現在、登録された飼育個体はいません。
+          </p>
+        </section>
+
+        <aside class="notice">
+          <strong>職員への連絡事項</strong><br>
+          登録区分の変更前に、対象者の氏名をご確認ください。<br>
+          対象者が自分の名前を思い出せない場合は、
+          変更を中止してください。
+        </aside>
+
+        <div class="actions">
+          <a class="button" href="registration.html">
+            登録区分の変更へ ›
+          </a>
+
+          <button id="refresh" class="outline" type="button">
+            表示を更新
+          </button>
+        </div>
+
+        <p class="muted">
+          表示は、この端末・ブラウザに保存された登録情報に基づきます。
+        </p>
+      </div>
+    </main>
+
+    <footer>
+      職員の皆様は、ご自身の登録区分も定期的にご確認ください。
+    </footer>
+  </div>
+
+  <script src="../session-config.js"></script>
+
+  <script>
+    const config = window.AQUARIUM_SESSION;
+    const records = document.getElementById("records");
+    const error = document.getElementById("error");
+    const authLink = document.getElementById("auth-link");
+
+    function fail(message, authentication = false) {
+      records.hidden = true;
+      error.hidden = false;
+      error.textContent = message;
+      authLink.hidden = !authentication;
+    }
+
+    function validConfig(c) {
+      if (
+        !c ||
+        typeof c.sessionId !== "string" ||
+        !/^[A-Za-z0-9_-]{1,64}$/.test(c.sessionId) ||
+        !Array.isArray(c.visitors) ||
+        c.visitors.length < 1 ||
+        c.visitors.length > 4
+      ) {
+        return false;
+      }
+
+      const validVisitors = c.visitors.every(function (pc) {
+        return (
+          pc &&
+          typeof pc.name === "string" &&
+          pc.name.trim() !== "" &&
+          pc.name.length <= 80 &&
+          ["entryId", "permitId"].every(function (key) {
+            return (
+              typeof pc[key] === "string" &&
+              /^[A-Za-z0-9_-]{1,64}$/.test(pc[key])
+            );
+          })
+        );
+      });
+
+      if (!validVisitors) return false;
+
+      return ["entryId", "permitId"].every(function (key) {
+        return new Set(
+          c.visitors.map(pc => pc[key].toUpperCase())
+        ).size === c.visitors.length;
+      });
+    }
+
+    function initialize() {
+      if (!validConfig(config)) {
+        fail("対象者の設定を読み込めません。KPへお知らせください。");
+        return;
+      }
+
+      // 既存の飼育個体。未設定なら空の一覧です。
+      const existing = config.specimens ?? [];
+
+      if (
+        !Array.isArray(existing) ||
+        !existing.every(function (s) {
+          return (
+            s &&
+            typeof s.specimenId === "string" &&
+            s.specimenId.trim() !== "" &&
+            typeof s.name === "string" &&
+            s.name.trim() !== ""
+          );
+        })
+      ) {
+        fail("既存の飼育個体の設定に不備があります。");
+        return;
+      }
+
+      const ids = existing.map(s => s.specimenId.toUpperCase());
+
+      if (
+        new Set(ids).size !== existing.length ||
+        existing.some(function (s) {
+          return config.visitors.some(function (pc) {
+            return pc.entryId.toUpperCase() ===
+              s.specimenId.toUpperCase();
+          });
+        })
+      ) {
+        fail("飼育個体の管理番号に重複があります。");
+        return;
+      }
+
+      const authKey =
+        "aquarium:" + config.sessionId + ":staff-auth";
+
+      const stateKey =
+        "aquarium:" + config.sessionId + ":registrations";
+
+      function addRow(target, id, name, specimen, pc = false) {
+        const row = document.createElement("tr");
+
+        if (pc && specimen) row.className = "new-pc";
+
+        const idCell = document.createElement("td");
+        idCell.textContent = id;
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = name;
+
+        const statusCell = document.createElement("td");
+        const badge = document.createElement("span");
+
+        badge.className = specimen ? "badge specimen" : "badge";
+        badge.textContent = specimen ? "飼育個体" : "来館者";
+
+        statusCell.append(badge);
+        row.append(idCell, nameCell, statusCell);
+        target.append(row);
+      }
+
+      function render() {
+        try {
+          if (sessionStorage.getItem(authKey) !== "true") {
+            fail(
+              "職員認証が必要です。職員証の情報で認証してください。",
+              true
+            );
+            return;
+          }
+
+          const raw = localStorage.getItem(stateKey);
+          const states = raw === null ? {} : JSON.parse(raw);
+
+          if (
+            !states ||
+            typeof states !== "object" ||
+            Array.isArray(states)
+          ) {
+            throw new Error("登録情報の形式が不正です。");
+          }
+
+          const visitorList =
+            document.getElementById("visitor-list");
+
+          const specimenList =
+            document.getElementById("specimen-list");
+
+          visitorList.replaceChildren();
+          specimenList.replaceChildren();
+
+          // 先に、元から登録されている飼育個体を表示します。
+          existing.forEach(function (s) {
+            addRow(
+              specimenList,
+              s.specimenId,
+              s.species || "人間",
+              true
+            );
+          });
+
+          let visitorCount = 0;
+          let specimenCount = existing.length;
+
+          // 未変更のPCは飼育個体一覧の末尾に追加します。
+          config.visitors.forEach(function (pc) {
+            const visitor =
+              Object.hasOwn(states, pc.entryId) &&
+              states[pc.entryId] === "visitor";
+
+            if (visitor) {
+              addRow(
+              visitorList,
+              pc.entryId,
+              pc.name,
+              false,
+              true
+            );
+            visitorCount++;
+          } else {
+            addRow(
+              specimenList,
+              pc.entryId,
+              pc.species || "人間",
+              true,
+              true
+            );
+            specimenCount++;
+          }
+          });
+
+          document.getElementById("visitor-count").textContent =
+            visitorCount + "名";
+
+          document.getElementById("specimen-count").textContent =
+            specimenCount + "体";
+
+          document.getElementById("visitor-empty").hidden =
+            visitorCount !== 0;
+
+          document.getElementById("specimen-empty").hidden =
+            specimenCount !== 0;
+
+          error.hidden = true;
+          authLink.hidden = true;
+          records.hidden = false;
+        } catch {
+          fail(
+            "登録情報を読み込めません。保存設定や進行情報をKPと確認してください。"
+          );
+        }
+      }
+
+      document.getElementById("refresh")
+        .addEventListener("click", render);
+
+      window.addEventListener("focus", render);
+
+      window.addEventListener("storage", function (event) {
+        if (event.key === stateKey || event.key === null) {
+          render();
+        }
+      });
+
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) render();
+      });
+
+      render();
+    }
+
+    initialize();
+  </script>
+</body>
+</html>

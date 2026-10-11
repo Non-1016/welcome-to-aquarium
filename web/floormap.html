@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>フロアマップ｜水族館</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #17394a;
+      background: #f3f9fc;
+      font-family: "Yu Gothic", sans-serif;
+      line-height: 1.8;
+    }
+
+    a {
+      color: #0877ad;
+    }
+
+    header {
+      padding: 22px;
+      color: white;
+      background: #073650;
+    }
+
+    .header-inner {
+      width: min(1080px, 92%);
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      color: white;
+      font-size: 1.4rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    nav {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+    }
+
+    main {
+      width: min(1080px, 92%);
+      margin: 40px auto 60px;
+    }
+
+    .eyebrow {
+      color: #0877ad;
+      font-size: .8rem;
+      letter-spacing: .18em;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .map-panel {
+      margin-top: 28px;
+      padding: 16px;
+      border: 1px solid #d6e3eb;
+      border-radius: 8px;
+      background: white;
+    }
+
+    .map-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    .map-caption {
+      margin: 14px 0 0;
+      color: #526d7c;
+      font-size: .85rem;
+      text-align: center;
+    }
+
+    .message {
+      padding: 18px;
+      background: #fff6df;
+      border-left: 4px solid #d79728;
+    }
+
+    section {
+      margin-top: 40px;
+    }
+
+    .route {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      counter-reset: area;
+    }
+
+    .route li {
+      counter-increment: area;
+    }
+
+    .area-link {
+      display: block;
+      height: 100%;
+      padding: 22px;
+      color: #17394a;
+      background: white;
+      border: 1px solid #d6e3eb;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: box-shadow .2s, border-color .2s;
+    }
+
+    .area-link:hover {
+      border-color: #0877ad;
+      box-shadow: 0 5px 18px #07365015;
+    }
+
+    .area-number {
+      display: block;
+      margin-bottom: 8px;
+      color: #0877ad;
+      font-size: .8rem;
+      letter-spacing: .12em;
+    }
+
+    .area-number::after {
+      content: " " counter(area, decimal-leading-zero);
+    }
+
+    .area-link h3 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+
+    .area-link p {
+      margin: 0 0 16px;
+      color: #526d7c;
+      font-size: .9rem;
+    }
+
+    .more {
+      color: #0877ad;
+      font-size: .85rem;
+      font-weight: bold;
+    }
+
+    .guide {
+      padding: 24px;
+      background: #e5f2f8;
+      border-radius: 8px;
+    }
+
+    .guide h2 {
+      margin-top: 0;
+    }
+
+    .notice {
+      padding: 22px;
+      margin-top: 28px;
+      border-left: 4px solid #0877ad;
+      background: white;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      margin-top: 12px;
+      color: white;
+      background: #0877ad;
+      border-radius: 5px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      background: #055e89;
+    }
+
+    .back {
+      display: inline-block;
+      margin-top: 30px;
+    }
+
+    :focus-visible {
+      outline: 3px solid #f1ae35;
+      outline-offset: 4px;
+    }
+
+    footer {
+      padding: 24px;
+      color: #bcdae7;
+      background: #073650;
+      text-align: center;
+      font-size: .75rem;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 760px) {
+      .route {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .route {
+        grid-template-columns: 1fr;
+      }
+
+      .map-panel {
+        padding: 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .area-link {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <a class="brand" href="top.html">館内案内</a>
+
+      <nav aria-label="メインメニュー">
+        <a href="floormap.html" aria-current="page">
+          フロアマップ
+        </a>
+        <a href="top.html#exhibitions">展示紹介</a>
+        <a href="checkout.html">退館手続き</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <p class="eyebrow">FLOOR MAP</p>
+    <h1>フロアマップ</h1>
+
+    <p>
+      館内の展示エリアと順路をご案内します。<br>
+      展示の詳細は、下のエリア名からご確認ください。
+    </p>
+
+    <figure class="map-panel">
+      <!-- 画像をこのHTMLと同じフォルダーに置いてください。 -->
+      <img
+        id="floor-map"
+        class="map-image"
+        src="GVOM1999.PNG"
+        alt="水族館の館内フロアマップ。各エリアの順路は下の案内をご覧ください。"
+      >
+
+      <p id="image-error" class="message" role="alert" hidden>
+        マップ画像を表示できません。
+        下の順路と展示エリア一覧をご利用ください。
+      </p>
+
+      <figcaption class="map-caption">
+        館内では、順路に沿ってお進みください。
+      </figcaption>
+    </figure>
+
+    <section class="guide" aria-labelledby="route-title">
+      <h2 id="route-title">館内の順路</h2>
+
+      <p>
+        エントランス → 沿岸の生き物 → クラゲ →
+        大水槽 → 深海の生き物 → ふれあい広場 →
+        ショップ → 出口
+      </p>
+
+      <a class="button" href="coastal.html">
+        最初のエリアへ進む →
+      </a>
+    </section>
+
+    <section aria-labelledby="areas-title">
+      <p class="eyebrow">EXHIBITION AREAS</p>
+      <h2 id="areas-title">展示エリア一覧</h2>
+
+      <ol class="route">
+        <li>
+          <a class="area-link" href="coastal.html">
+            <span class="area-number">AREA</span>
+            <h3>沿岸の生き物</h3>
+            <p>身近な海に暮らす生き物たちをご紹介します。</p>
+            <span class="more">展示ページを見る →</span>
+          </a>
+        </li>
+
+        <li>
+          <a class="area-link" href="jellyfish.html">
+            <span class="area-number">AREA</span>
+            <h3>クラゲ</h3>
+            <p>光の中を静かに漂うクラゲたちの世界へ。</p>
+            <span class="more">展示ページを見る →</span>
+          </a>
+        </li>
+
+        <li>
+          <a class="area-link" href="tank.html">
+            <span class="area-number">AREA</span>
+            <h3>大水槽</h3>
+            <p>魚群の向こうに広がる、大きな海をご覧ください。</p>
+            <span class="more">展示ページを見る →</span>
+          </a>
+        </li>
+
+        <li>
+          <a class="area-link" href="deepsea.html">
+            <span class="area-number">AREA</span>
+            <h3>深海の生き物</h3>
+            <p>光の届かない海に暮らす生き物たちをご紹介します。</p>
+            <span class="more">展示ページを見る →</span>
+          </a>
+        </li>
+
+        <li>
+          <a class="area-link" href="touch.html">
+            <span class="area-number">AREA</span>
+            <h3>ふれあい広場</h3>
+            <p>ご利用前に、ふれあいの注意事項をご確認ください。</p>
+            <span class="more">展示ページを見る →</span>
+          </a>
+        </li>
+
+        <li>
+          <a class="area-link" href="shop.html">
+            <span class="area-number">AREA</span>
+            <h3>ショップ</h3>
+            <p>今夜の思い出に、海の世界から小さなお土産を。</p>
+            <span class="more">ショップを見る →</span>
+          </a>
+        </li>
+      </ol>
+    </section>
+
+    <aside class="notice">
+      <h2>お帰りの前に</h2>
+
+      <p>
+        出口をご利用の際は、必ず退館手続きをお済ませください。
+      </p>
+
+      <a class="button" href="checkout.html">
+        退館手続きへ →
+      </a>
+    </aside>
+
+    <a class="back" href="top.html">
+      ← トップページへ戻る
+    </a>
+  </main>
+
+  <footer>
+    AQUARIUM — 館内案内<br>
+    本日のご来館、誠にありがとうございます。
+  </footer>
+
+  <script>
+    const image = document.getElementById("floor-map");
+    const error = document.getElementById("image-error");
+
+    function showImageError() {
+      image.hidden = true;
+      error.hidden = false;
+    }
+
+    image.addEventListener("error", showImageError);
+
+    // 読み込み失敗が先に起きていた場合にも対応します。
+    if (image.complete && image.naturalWidth === 0) {
+      showImageError();
+    }
+  </script>
+</body>
+</html>

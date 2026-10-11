@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="沿岸の生き物の展示紹介。展示番号から案内情報をご確認いただけます。">
+  <title>沿岸の生き物｜水族館・館内案内</title>
+  <style>
+    /* 配色を変更する場合は、ここを編集してください。 */
+    :root { --navy:#073650; --blue:#0877ad; --aqua:#5ad4df; --paper:#f3f9fc; --ink:#17394a; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif; line-height:1.8; }
+    a { color:inherit; }
+    a:focus-visible { outline:3px solid #f1ae35; outline-offset:5px; }
+    .skip { position:absolute; top:-100px; left:16px; padding:12px; background:white; z-index:10; }
+    .skip:focus { top:12px; }
+    .container { width:min(1080px,92%); margin-inline:auto; }
+    header { background:var(--navy); color:white; }
+    .header-inner { display:flex; justify-content:space-between; align-items:center; gap:24px; padding-block:20px; }
+    .brand { text-decoration:none; font-size:1.5rem; font-weight:700; letter-spacing:.15em; }
+    .brand small { display:block; font-size:.65rem; letter-spacing:.2em; font-weight:400; color:#a4d7e9; }
+    nav { display:flex; gap:24px; flex-wrap:wrap; }
+    nav a { font-size:.9rem; text-decoration:none; padding-block:4px; border-bottom:2px solid transparent; }
+    nav a:hover { border-color:var(--aqua); }
+    .hero { position:relative; overflow:hidden; isolation:isolate; padding:100px 0 110px; color:white; background:radial-gradient(ellipse at 80% 0%,#187c97 0%,transparent 60%),linear-gradient(145deg,#073650,#061c31); }
+    /* 写真を使う場合は .hero に background-image を指定できます。 */
+    .hero::before { content:""; position:absolute; z-index:-1; inset:0; opacity:.3; background:repeating-linear-gradient(115deg,transparent 0 100px,#65d4e81a 120px,transparent 150px); }
+    .hero::after { content:""; position:absolute; width:720px; height:230px; border-radius:50%; background:#ffffff0a; bottom:-190px; left:10%; transform:rotate(-12deg); }
+    .eyebrow { color:#a1e4ed; font-size:.8rem; letter-spacing:.22em; }
+    h1 { font-family:"Yu Mincho","Hiragino Mincho ProN",serif; font-size:clamp(2rem,5vw,3.8rem); line-height:1.5; letter-spacing:.08em; margin:20px 0; }
+    .hero p { max-width:600px; }
+    .actions { display:flex; gap:14px; flex-wrap:wrap; margin-top:30px; }
+    .button { display:inline-block; padding:12px 25px; border-radius:5px; background:var(--blue); color:white; font-weight:700; text-decoration:none; text-align:center; transition:background .2s; }
+    .button:hover { background:#055e89; }
+    .hero .button { color:var(--navy); background:white; }
+    .hero .button:hover { background:#dcf5fa; }
+    .hero .secondary { background:transparent; color:white; border:1px solid #95c4d4; }
+    .hero .secondary:hover { background:#ffffff18; }
+    section { padding-block:52px; scroll-margin-top:20px; }
+    h2 { margin:0 0 25px; font-size:1.65rem; letter-spacing:.06em; }
+    .section-label { margin:0; font-size:.75rem; color:var(--blue); letter-spacing:.2em; }
+    .notice { margin-top:30px; background:white; border-left:4px solid var(--blue); padding:24px 28px; box-shadow:0 5px 25px #07365008; }
+    .notice h2 { font-size:1.15rem; margin-bottom:8px; }
+    .notice p { margin:0; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
+    .card { display:block; border-radius:8px; overflow:hidden; background:white; text-decoration:none; border:1px solid #dceaf0; transition:transform .2s,box-shadow .2s; }
+    .card:hover { transform:translateY(-4px); box-shadow:0 8px 24px #07365015; }
+    .visual { height:145px; position:relative; overflow:hidden; display:grid; place-items:center; color:#ffffffbd; font-size:.75rem; letter-spacing:.25em; background:linear-gradient(150deg,#38aeb7,#07557d); }
+    .visual::before,.visual::after { content:""; position:absolute; width:200px; height:200px; border:1px solid #ffffff25; border-radius:50%; right:-40px; top:35px; }
+    .visual::after { width:270px; height:270px; top:10px; right:-70px; }
+    .jelly { background:linear-gradient(150deg,#797cba,#204d79); }
+    .tank { background:linear-gradient(150deg,#166b8e,#092f4a); }
+    .deep { background:linear-gradient(150deg,#244b70,#081c32); }
+    .touch { background:linear-gradient(150deg,#57bcb6,#157f97); }
+    .shop { background:linear-gradient(150deg,#70b6ce,#347b9d); }
+    .card-text { padding:20px; }
+    .number { font-size:.72rem; color:var(--blue); letter-spacing:.15em; }
+    h3 { font-size:1.15rem; margin:5px 0; }
+    .card p { font-size:.85rem; color:#526d7c; margin:8px 0 14px; }
+    .more { color:var(--blue); font-size:.82rem; font-weight:700; }
+    .guide { background:#e5f2f8; }
+    .guide-inner { display:grid; grid-template-columns:1fr auto; align-items:center; gap:30px; }
+    .guide p { margin-bottom:0; }
+    .exit { padding:28px; border:1px solid #c6dce7; border-radius:8px; background:white; }
+    .exit p { margin-bottom:24px; }
+    footer { background:var(--navy); color:#bcdae7; padding:28px 0; font-size:.75rem; text-align:center; }
+    footer p { margin:5px 0; }
+    @media(max-width:760px) {
+      .header-inner { align-items:flex-start; flex-direction:column; gap:14px; }
+      nav { gap:18px; }
+      .hero { padding:65px 0 75px; }
+      .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .guide-inner { grid-template-columns:1fr; }
+    }
+    @media(max-width:480px) {
+      .grid { grid-template-columns:1fr; }
+      .actions { flex-direction:column; align-items:stretch; }
+      section { padding-block:36px; }
+    }
+    @media(prefers-reduced-motion:reduce) {
+      html { scroll-behavior:auto; }
+      .card,.button { transition:none; }
+      .card:hover { transform:none; }
+    }
+  
+    .breadcrumb { padding-block:18px; font-size:.8rem; color:#526d7c; }
+    .hero { padding:55px 0 65px; }
+    .intro { max-width:720px; }
+    article.card:hover { transform:none; box-shadow:none; }
+    .species-art { height:150px; display:grid; place-items:center; background:linear-gradient(140deg,#def3f7,#a9d4e3); font-size:3.5rem; }
+    .species-art span { filter:drop-shadow(0 8px 8px #07365015); }
+    .search-box { background:white; padding:28px; border:1px solid #dceaf0; border-radius:8px; }
+    .search-row { display:flex; align-items:stretch; gap:12px; flex-wrap:wrap; margin-top:10px; }
+    input { min-width:0; flex:1 1 220px; padding:12px; border:1px solid #97bacb; border-radius:5px; font:inherit; }
+    input:focus-visible,button:focus-visible { outline:3px solid #f1ae35; outline-offset:3px; }
+    button { border:0; cursor:pointer; font:inherit; }
+    .hint { color:#526d7c; font-size:.82rem; }
+    #search-result { padding:16px; background:#eaf5fa; border-radius:5px; margin-top:16px; }
+    #search-result:empty { display:none; }
+    .page-navigation { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; padding-block:30px 45px; }
+    .return-link { color:var(--blue); }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">本文へ移動</a>
+  <header>
+    <div class="container header-inner">
+      <a class="brand" href="top.html">館内案内<small>AQUARIUM GUIDE</small></a>
+      <nav aria-label="メインメニュー">
+        <a href="top.html#floor-guide">フロアマップ</a>
+        <a href="top.html#exhibitions">展示紹介</a>
+        <a href="top.html#exit-guide">退館手続き</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <nav class="container breadcrumb" aria-label="現在位置">
+      <a href="top.html">ホーム</a><span aria-hidden="true">›</span>
+      <a href="top.html#exhibitions">展示紹介</a><span aria-hidden="true">›</span>
+      <span aria-current="page">沿岸の生き物</span>
+    </nav>
+    <div class="hero">
+      <div class="container">
+        <div class="eyebrow">AREA 01 / COASTAL LIFE</div>
+        <h1>沿岸の生き物</h1>
+        <p>波打ち際から、岩陰の小さな世界まで。<br>身近な海に暮らす生き物たちとの出会いをお楽しみください。</p>
+      </div>
+    </div>
+    <div class="container">
+      <section aria-labelledby="intro-title">
+        <p class="section-label">ABOUT THIS AREA</p>
+        <h2 id="intro-title">海辺の小さな世界へ</h2>
+        <p class="intro">このエリアでは、沿岸の生き物たちをご紹介します。岩や砂、海藻に囲まれた水槽を、ゆっくりとご覧ください。生き物が見つからないときは、岩の隙間や砂の上にも目を向けてみましょう。</p>
+        <aside class="notice" aria-label="観覧時のお願い">
+          <h2>観覧時のお願い</h2>
+          <p>水槽をたたいたり、ガラスに強い光を当てたりしないでください。<br>水槽内に落とし物を見つけた場合は、ご自身で回収せず、職員へお知らせください。</p>
+        </aside>
+      </section>
+      <section aria-labelledby="species-title">
+        <p class="section-label">EXHIBITION GUIDE</p>
+        <h2 id="species-title">展示生物のご紹介</h2>
+        <!-- この絵文字部分は、後から生物写真の img 要素に置き換えられます。 -->
+        <div class="grid">
+          <article class="card">
+            <div class="species-art" aria-hidden="true"><span>🐟</span></div>
+            <div class="card-text"><span class="number">展示番号 C-01</span><h3>沿岸の魚たち</h3><p>水槽を泳ぐ魚たちを観察してみましょう。体の形や泳ぎ方にも、それぞれの違いがあります。</p></div>
+          </article>
+          <article class="card">
+            <div class="species-art" aria-hidden="true"><span>🦀</span></div>
+            <div class="card-text"><span class="number">展示番号 C-02</span><h3>岩場のカニ</h3><p>岩陰に隠れていることもあるカニ。脚やはさみの動きを、少し離れた場所からご覧ください。</p></div>
+          </article>
+          <article class="card">
+            <div class="species-art" aria-hidden="true"><span>🐙</span></div>
+            <div class="card-text"><span class="number">展示番号 C-03</span><h3>岩陰のタコ</h3><p>岩陰からのぞく腕を探してみましょう。隠れているときは、静かにお待ちください。</p></div>
+          </article>
+        </div>
+      </section>
+      <section aria-labelledby="search-title">
+        <div class="search-box">
+          <p class="section-label">EXHIBITION NUMBER</p>
+          <h2 id="search-title">展示番号で調べる</h2>
+          <p>水槽の案内板に記載された展示番号を入力してください。</p>
+          <form id="exhibition-search">
+            <label for="exhibition-number">展示番号</label>
+            <div class="search-row">
+              <input id="exhibition-number" name="exhibition" type="text" placeholder="例：C-01" maxlength="20" required autocomplete="off" spellcheck="false" aria-describedby="search-hint">
+              <button class="button" type="submit">展示情報を表示</button>
+            </div>
+            <p class="hint" id="search-hint">半角・全角のどちらでも入力できます。</p>
+          </form>
+          <div id="search-result" role="status" aria-live="polite" aria-atomic="true"></div>
+          <noscript><p>展示番号検索にはJavaScriptが必要です。上の展示紹介をご覧ください。</p></noscript>
+        </div>
+      </section>
+      <div class="page-navigation" aria-label="展示の順路">
+        <a class="return-link" href="top.html">← トップページへ戻る</a>
+        <!-- 次のページ jellyfish.html を同じフォルダーに作成してください。 -->
+        <a class="button" href="jellyfish.html">次のエリア：クラゲ →</a>
+      </div>
+    </div>
+  </main>
+  <footer><div class="container"><p>AQUARIUM — 館内案内</p><p>お帰りの際は、必ず退館手続きをお願いいたします。</p></div></footer>
+  <script>
+    // 展示番号と説明文を追加すると、検索できる情報が増えます。
+    const exhibitions = {
+      'C-01': { name: '沿岸の魚たち', description: '観覧エリア：沿岸の生き物。魚たちの泳ぎ方や、岩陰での過ごし方を観察してみましょう。' },
+      'C-02': { name: '岩場のカニ', description: '観覧エリア：沿岸の生き物。岩の隙間もご覧ください。水槽に手を入れないでください。' },
+      'C-03': { name: '岩陰のタコ', description: '観覧エリア：沿岸の生き物。隠れている場合は静かにお待ちください。ガラス越しに触れようとしないでください。' }
+    };
+    const form = document.getElementById('exhibition-search');
+    const input = document.getElementById('exhibition-number');
+    const result = document.getElementById('search-result');
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      // 全角英数字・空白・よく使われるハイフンの違いを吸収します。
+      const number = input.value.normalize('NFKC').trim().toUpperCase()
+        .replace(/\s/g, '').replace(/[‐‑‒–—−ー]/g, '-');
+      const exhibit = Object.hasOwn(exhibitions, number) ? exhibitions[number] : null;
+      result.replaceChildren();
+      if (!exhibit) {
+        result.textContent = '該当する展示が見つかりません。案内板の展示番号をもう一度ご確認ください。';
+        return;
+      }
+      const heading = document.createElement('h3');
+      heading.textContent = number + ' ｜ ' + exhibit.name;
+      const description = document.createElement('p');
+      description.textContent = exhibit.description;
+      result.append(heading, description);
+    });
+  </script>
+</body>
+</html>
