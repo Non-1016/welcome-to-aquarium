@@ -312,8 +312,15 @@
   </div>
 
   <script src="../session-config.js"></script>
+  <script src="../shared-config.js"></script>
+  <section id="shared-gate" style="position:fixed;inset:0;z-index:9999;background:#f5fafc;color:#123;padding:10vh 7vw;overflow:auto;font-family:sans-serif" aria-label="共有システムの接続">
+    <h2>館内システムに接続しています</h2>
+    <p>この表示が続く場合は、通信を確認して再読み込みしてください。</p>
+  </section>
 
-  <script>
+  <script type="module">
+    import {connectParticipant} from "../shared-client.js";
+    const shared = await connectParticipant();
     const config = window.AQUARIUM_SESSION;
     const records = document.getElementById("records");
     const error = document.getElementById("error");
@@ -440,8 +447,7 @@
             return;
           }
 
-          const raw = localStorage.getItem(stateKey);
-          const states = raw === null ? {} : JSON.parse(raw);
+          const states = shared.readRecord(stateKey);
 
           if (
             !states ||
@@ -537,6 +543,7 @@
         if (!document.hidden) render();
       });
 
+      shared.subscribe(render);
       render();
     }
 

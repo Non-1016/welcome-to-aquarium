@@ -295,8 +295,15 @@
   </div>
 
   <script src="../session-config.js"></script>
+  <script src="../shared-config.js"></script>
+  <section id="shared-gate" style="position:fixed;inset:0;z-index:9999;background:#f5fafc;color:#123;padding:10vh 7vw;overflow:auto;font-family:sans-serif" aria-label="共有システムの接続">
+    <h2>館内システムに接続しています</h2>
+    <p>この表示が続く場合は、通信を確認して再読み込みしてください。</p>
+  </section>
 
-  <script>
+  <script type="module">
+    import {connectParticipant} from "../shared-client.js";
+    const shared = await connectParticipant();
     const config = window.AQUARIUM_SESSION;
 
     const management = document.getElementById("management");
@@ -369,18 +376,7 @@
       }
 
       function readRecord(key) {
-        const raw = localStorage.getItem(key);
-        const record = raw === null ? {} : JSON.parse(raw);
-
-        if (
-          !record ||
-          typeof record !== "object" ||
-          Array.isArray(record)
-        ) {
-          throw new Error("保存情報の形式が不正です。");
-        }
-
-        return record;
+        return shared.readRecord(key);
       }
 
       function selectedPC() {
@@ -484,8 +480,10 @@
       });
 
       document.getElementById("registration-form")
-        .addEventListener("submit", function (event) {
+        .addEventListener("submit", async function (event) {
           event.preventDefault();
+          if (saveButton.disabled) return;
+          saveButton.disabled = true;
 
           try {
             if (!authorized()) {
@@ -524,43 +522,8 @@
               return;
             }
 
-            const permits = readRecord(permitKey);
-            const exits = readRecord(exitKey);
-
-            states[pc.entryId] = newStatus.value;
-
-            // 区分変更後は、対象者の古い許可と退館記録を無効化。
-            delete permits[pc.entryId];
-            delete exits[pc.entryId];
-
-            const updates = [
-              [permitKey, permits],
-              [exitKey, exits],
-              [stateKey, states]
-            ];
-
-            const backups = updates.map(function ([key]) {
-              return [key, localStorage.getItem(key)];
-            });
-
-            try {
-              updates.forEach(function ([key, value]) {
-                localStorage.setItem(key, JSON.stringify(value));
-              });
-            } catch (storageError) {
-              // 保存失敗時は、変更前の状態へ戻します。
-              backups.forEach(function ([key, value]) {
-                try {
-                  if (value === null) {
-                    localStorage.removeItem(key);
-                  } else {
-                    localStorage.setItem(key, value);
-                  }
-                } catch {}
-              });
-
-              throw storageError;
-            }
+            await shared.act({type: "registration", entryId: pc.entryId,
+              name: nameInput.value, status: newStatus.value});
 
             render();
 
@@ -581,6 +544,8 @@
               "× 変更処理を完了できません。" +
               "保存設定や進行情報をKPと確認してください。"
             );
+          } finally {
+            saveButton.disabled = !shared.connected || !shared.state;
           }
         });
 
@@ -592,6 +557,7 @@
         }
       });
 
+      shared.subscribe(refresh);
       refresh();
     }
 
