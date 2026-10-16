@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>KP進行モニター｜潮隠水族館</title>
+  <style>
+    :root{color-scheme:light;--ink:#163c47;--muted:#54747c;--line:#c9dbde;--sea:#125c69}
+    *{box-sizing:border-box}body{margin:0;background:#edf4f4;color:var(--ink);font-family:system-ui,sans-serif;line-height:1.7}
+    header{background:#103d49;color:#fff;padding:30px max(5vw,20px)}header small{letter-spacing:.2em;color:#aad4d9}h1{margin:4px 0;font-size:28px}h2{font-size:19px;margin-top:0}
+    main{max-width:1120px;margin:28px auto;padding:0 20px 60px}section{background:white;border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:20px}
+    .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.grid section{margin-bottom:0}
+    label{display:block;margin:12px 0}input{width:100%;padding:11px;border:1px solid #97b4bb;border-radius:6px;font:inherit}button{background:var(--sea);border:0;border-radius:6px;padding:11px 16px;color:white;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:wait}.secondary{background:#e2eeee;color:var(--ink)}
+    .scroll{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;text-align:left}td,th{padding:12px;border-bottom:1px solid var(--line)}th{font-size:13px;color:var(--muted)}#alert{border-left:6px solid #cc7727;background:#fff5e6}#message{white-space:pre-wrap;color:#8a321b}#connection{font-weight:bold}.uid{font-size:12px;overflow-wrap:anywhere;color:var(--muted)}.request{padding:14px 0;border-bottom:1px solid var(--line)}#login{max-width:460px}#login p{color:var(--muted)}[hidden]{display:none!important}
+    @media(max-width:700px){.grid{grid-template-columns:1fr}section{padding:18px}h1{font-size:23px}}
+  </style>
+</head>
+<body>
+  <header><small>SHIOKAKUSHI AQUARIUM / KEEPER</small><h1>KP進行モニター</h1><div>登録変更と退館状況を、この画面で確認できます。</div></header>
+  <main>
+    <p id="message" role="status">読み込み中です。表示が続く場合は通信を確認して再読み込みしてください。</p>
+    <section id="login" hidden>
+      <h2>KPログイン</h2><p>Firebaseで作成したKP用アカウントを使います。</p>
+      <form id="login-form">
+        <label>メールアドレス<input id="email" type="email" autocomplete="username" required></label>
+        <label>パスワード<input id="password" type="password" autocomplete="current-password" required></label>
+        <button id="login-button">ログイン</button>
+      </form>
+    </section>
+    <div id="dashboard" hidden>
+      <section class="toolbar">
+        <strong id="session-label"></strong><span id="connection" role="status">接続を確認中</span>
+        <button id="sound" type="button" class="secondary">通知音を有効にする</button>
+        <button id="logout" type="button" class="secondary">ログアウト</button>
+      </section>
+      <section id="setup" hidden><h2>共有セッションを開始</h2><p>現在のsession-config.jsの探索者設定で作成します。全員が「飼育個体」から開始します。端末内の古い記録は取り込みません。</p><button id="create" type="button">共有セッションを作成する</button></section>
+      <section id="alert" hidden aria-live="polite"><h2 id="alert-title">登録区分が変更されました</h2><p id="alert-text"></p><button id="ack" type="button">現在の通知を確認済みにする</button></section>
+      <div class="grid">
+        <section><h2>接続の参加申請</h2><p>PLの画面の接続確認ID（末尾8文字）と照合して承認してください。</p><div id="requests"></div></section>
+        <section><h2>承認済みの端末</h2><p>承認はこのセッション内で有効です。</p><div id="members"></div></section>
+      </div>
+      <section style="margin-top:20px"><h2>探索者の進行状況</h2><div class="scroll"><table><thead><tr><th>入館番号</th><th>氏名</th><th>登録区分</th><th>退館許可</th><th>退館</th></tr></thead><tbody id="roster"></tbody></table></div></section>
+      <section><h2>変更履歴</h2><p>時刻は日本時間です。登録変更・許可証発行・退館を記録します。</p><div class="scroll"><table><thead><tr><th>日時</th><th>入館番号</th><th>操作</th><th>接続確認ID</th></tr></thead><tbody id="history"></tbody></table></div></section>
+    </div>
+  </main>
+  <script src="session-config.js"></script>
+  <script src="shared-config.js"></script>
+  <script type="module">
+    import {auth, db, sessionPath, isKP, loginKP, logoutKP, createSession, approve, errorMessage} from "./shared-client.js";
+    import {checkState} from "./state-core.mjs";
+    import {ref, onValue, remove} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+    const $ = id => document.getElementById(id);
+    const config = window.AQUARIUM_SESSION;
+    const ackKey = "aquarium:" + config.sessionId + ":kp-ack";
+    let acknowledged = new Set();
+    try { acknowledged = new Set(JSON.parse(localStorage.getItem(ackKey) || "[]")); } catch {}
+    let stops = [], currentEvents = {}, seen = null, audio = null, soundEnabled = false, online = false;
+    function tell(text) { $("message").textContent = text; }
+    function statusLabel(value) { return value === "visitor" ? "来館者" : "飼育個体"; }
+    function description(e) {
+      if (e.type === "registration") return statusLabel(e.before) + " → " + statusLabel(e.after);
+      return e.type === "permit" ? "退館許可証を発行" : "退館完了";
+    }
+    function time(at) { return typeof at === "number" ? new Date(at).toLocaleString("ja-JP", {timeZone:"Asia/Tokyo",hour12:false}) : "時刻を確認中"; }
+    function row(parent, values) {
+      const tr = document.createElement("tr");
+      values.forEach(value => { const td=document.createElement("td");td.textContent=value;tr.append(td); });
+      parent.append(tr);
+    }
+    function tone() {
+      if (!soundEnabled || !audio) return;
+      audio.resume().then(() => {
+        const oscillator=audio.createOscillator(), gain=audio.createGain();
+        oscillator.connect(gain);gain.connect(audio.destination);
+        oscillator.frequency.value=740;gain.gain.setValueAtTime(.12,audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.6);
+        oscillator.start();oscillator.stop(audio.currentTime+.6);
+      }).catch(() => tell("通知音を再度有効にしてください。"));
+    }
+    function alerts() {
+      const pending = Object.entries(currentEvents).filter(([id,e]) => e.type === "registration" && !acknowledged.has(id));
+      $("alert").hidden = pending.length === 0;
+      if (pending.length) {
+        const [,last] = pending.at(-1);
+        $("alert-title").textContent = "未確認の登録変更：" + pending.length + "件";
+        $("alert-text").textContent = last.entryId + "：" + description(last) + " ／ " + time(last.at);
+      }
+    }
+    function render(data) {
+      $("setup").hidden = Boolean(data.state);
+      $("requests").replaceChildren();
+      const requests = Object.keys(data.joinRequests || {});
+      if (!requests.length) $("requests").textContent = "現在、申請はありません。";
+      requests.forEach(uid => {
+        const item=document.createElement("div"); item.className="request";
+        const title=document.createElement("strong"); title.textContent="接続確認ID："+uid.slice(-8);
+        const full=document.createElement("p");full.className="uid";full.textContent=uid;
+        const button=document.createElement("button");button.textContent="この端末を承認";button.disabled=!online || !data.state;
+        button.onclick=async()=>{button.disabled=true;try{await approve(uid);tell("端末を承認しました。");}catch(e){tell(errorMessage(e));button.disabled=false;}};
+        item.append(title,full,button);$("requests").append(item);
+      });
+      $("members").replaceChildren();
+      Object.keys(data.members || {}).forEach(uid => {
+        const item=document.createElement("div");item.className="request";
+        const label=document.createElement("span");label.textContent=uid.slice(-8)+" ";
+        const button=document.createElement("button");button.className="secondary";button.textContent="承認を解除";button.disabled=!online;
+        button.onclick=async()=>{button.disabled=true;try{await remove(ref(db,sessionPath+"/members/"+uid));tell("端末の承認を解除しました。");}catch(e){tell(errorMessage(e));button.disabled=false;}};
+        item.append(label,button);$("members").append(item);
+      });
+      $("roster").replaceChildren();$("history").replaceChildren();
+      if (!data.state) return;
+      try { checkState(data.state, config); } catch(e) { tell(errorMessage(e)); return; }
+      const state=data.state;
+      config.visitors.forEach(pc => row($("roster"), [pc.entryId,pc.name,statusLabel(state.registrations?.[pc.entryId]),state.permits?.[pc.entryId] === pc.permitId ? "発行済み" : "未発行",state.exits?.[pc.entryId] === true ? "完了" : "未完了"]));
+      currentEvents=state.events || {};
+      const ordered=Object.entries(currentEvents).sort((a,b)=>(a[1].at-b[1].at) || a[0].localeCompare(b[0]));
+      if (seen && ordered.some(([id,e])=>!seen.has(id) && e.type === "registration")) tone();
+      seen=new Set(Object.keys(currentEvents));
+      ordered.reverse().forEach(([,e])=>row($("history"), [time(e.at),e.entryId,description(e),String(e.actor).slice(-8)]));
+      alerts();
+    }
+    let latest={};
+    function watch() {
+      stops.forEach(stop=>stop());stops=[];seen=null;
+      $("login").hidden=true;$("dashboard").hidden=false;$("session-label").textContent="セッション："+config.sessionId;
+      stops.push(onValue(ref(db,".info/connected"),snap=>{
+        online=snap.val()===true;$("connection").textContent=online?"接続中":"接続が切れています";
+        $("create").disabled=!online;
+        // 接続状態の変化でも、申請の承認ボタンを更新する。
+        render(latest);
+      }));
+      stops.push(onValue(ref(db,sessionPath),snap=>{latest=snap.val() || {};render(latest);},e=>tell(errorMessage(e))));
+    }
+    $("login-form").onsubmit=async event=>{
+      event.preventDefault();$("login-button").disabled=true;
+      try { await loginKP($("email").value,$("password").value);tell("");watch(); }
+      catch(e) { tell(errorMessage(e)); }
+      finally { $("password").value="";$("login-button").disabled=false; }
+    };
+    $("create").onclick=async()=>{
+      $("create").disabled=true;
+      try { await createSession();tell("共有セッションを確認しました。PLからの参加申請を承認してください。"); }
+      catch(e){tell(errorMessage(e));}
+      finally{$("create").disabled=!online;}
+    };
+    $("ack").onclick=()=>{
+      Object.keys(currentEvents).forEach(id=>acknowledged.add(id));
+      try{localStorage.setItem(ackKey,JSON.stringify([...acknowledged]));}catch{tell("このブラウザでは確認済み通知を保存できません。再読み込みすると再表示されます。");}
+      alerts();
+    };
+    $("sound").onclick=async()=>{
+      if(soundEnabled){soundEnabled=false;$("sound").textContent="通知音を有効にする";return;}
+      try{audio ||= new (window.AudioContext || window.webkitAudioContext)();await audio.resume();soundEnabled=true;$("sound").textContent="通知音を無効にする";tone();}
+      catch{tell("通知音を有効にできません。このブラウザでは画面の通知をご確認ください。");}
+    };
+    $("logout").onclick=async()=>{
+      stops.forEach(stop=>stop());stops=[];soundEnabled=false;
+      try{await logoutKP();location.reload();}catch(e){tell(errorMessage(e));}
+    };
+    await auth.authStateReady();tell("");
+    if(isKP()) watch(); else $("login").hidden=false;
+  </script>
+</body>
+</html>
